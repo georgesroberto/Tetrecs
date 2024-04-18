@@ -1,0 +1,12 @@
+*.iml
+.DS_Store
+.classpath
+.factorypath
+.idea
+.idea/
+.project
+.settings
+.settings/
+scores.txt
+target
+target/
