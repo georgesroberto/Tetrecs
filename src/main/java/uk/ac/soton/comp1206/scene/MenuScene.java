@@ -8,6 +8,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.ac.soton.comp1206.ui.GamePane;
 import uk.ac.soton.comp1206.ui.GameWindow;
+import uk.ac.soton.comp1206.Multimedia;
+
 
 /**
  * The main menu of the game. Provides a gateway to the rest of the game.
@@ -15,6 +17,10 @@ import uk.ac.soton.comp1206.ui.GameWindow;
 public class MenuScene extends BaseScene {
 
     private static final Logger logger = LogManager.getLogger(MenuScene.class);
+
+    // Create a Multimedia instance
+    private final Multimedia multimedia = new Multimedia();
+
 
     /**
      * Create a new menu scene
@@ -54,6 +60,10 @@ public class MenuScene extends BaseScene {
 
         //Bind the button action to the startGame method in the menu
         button.setOnAction(this::startGame);
+
+
+        // Play background music
+        multimedia.playMusic();
     }
 
     /**
