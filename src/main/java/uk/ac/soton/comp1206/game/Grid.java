@@ -103,4 +103,40 @@ public class Grid {
         return rows;
     }
 
+    public boolean canPlayPiece(int x, int y, GamePiece piece) {
+        // Get the shape of the piece
+        int[][] shape = piece.getBlocks();
+
+        // Check if the piece can fit within the grid boundaries
+        if (x < 0 || y < 0 || x + shape.length > cols || y + shape[0].length > rows) {
+            return false;
+        }
+
+        // Check if any cells that the piece would occupy are already occupied
+        for (int i = 0; i < shape.length; i++) {
+            for (int j = 0; j < shape[0].length; j++) {
+                if (shape[i][j] != 0 && grid[x + i][y + j].get() != 0) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public void playPiece(int x, int y, GamePiece piece) {
+        // Get the shape of the piece
+        int[][] shape = piece.getBlocks();
+
+        // Place the piece onto the grid
+        for (int i = 0; i < shape.length; i++) {
+            for (int j = 0; j < shape[0].length; j++) {
+                if (shape[i][j] != 0) {
+                    grid[x + i][y + j].set(piece.getValue());
+                }
+            }
+        }
+    }
+
+
 }
