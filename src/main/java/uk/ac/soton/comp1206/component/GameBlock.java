@@ -4,6 +4,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -115,20 +116,20 @@ public class GameBlock extends Canvas {
     /**
      * Paint this canvas empty
      */
-    private void paintEmpty() {
-        var gc = getGraphicsContext2D();
+    // private void paintEmpty() {
+    //     var gc = getGraphicsContext2D();
 
-        //Clear
-        gc.clearRect(0,0,width,height);
+    //     //Clear
+    //     gc.clearRect(0,0,width,height);
 
-        //Fill
-        gc.setFill(Color.WHITE);
-        gc.fillRect(0,0, width, height);
+    //     //Fill
+    //     gc.setFill(Color.WHITE);
+    //     gc.fillRect(0,0, width, height);
 
-        //Border
-        gc.setStroke(Color.BLACK);
-        gc.strokeRect(0,0,width,height);
-    }
+    //     //Border
+    //     gc.setStroke(Color.BLACK);
+    //     gc.strokeRect(0,0,width,height);
+    // }
 
     /**
      * Paint this canvas with the given colour
@@ -179,6 +180,55 @@ public class GameBlock extends Canvas {
      */
     public void bind(ObservableValue<? extends Number> input) {
         value.bind(input);
+    }
+
+
+    /**
+     * Set whether the block is filled or not
+     * @param filled true if the block should be filled, false otherwise
+     */
+    public void setFilled(boolean filled) {
+        // Set the value of the block based on whether it should be filled or not
+        value.set(filled ? 1 : 0);
+    }
+
+
+    /**
+     * Paint this canvas empty
+     */
+    private void paintEmpty() {
+        GraphicsContext gc = getGraphicsContext2D();
+
+        // Clear canvas
+        gc.clearRect(0, 0, width, height);
+
+        // Draw border
+        gc.setStroke(Color.LIGHTGRAY);
+        gc.strokeRect(0, 0, width, height);
+    }
+
+    /**
+     * Paint this canvas with the given colour gradient for filled tiles
+     * @param colour the colour to paint
+     */
+    private void paintFilled(Color colour) {
+        GraphicsContext gc = getGraphicsContext2D();
+
+        // Clear canvas
+        gc.clearRect(0, 0, width, height);
+
+        // Create gradient for filled tiles
+        LinearGradient gradient = new LinearGradient(0, 0, 0, height, false, CycleMethod.NO_CYCLE,
+                new Stop(0.0, colour.deriveColor(1, 1, 1, 0.5)),
+                new Stop(1.0, colour.deriveColor(1, 1, 1, 0.8)));
+
+        // Fill rectangle with gradient
+        gc.setFill(gradient);
+        gc.fillRect(0, 0, width, height);
+
+        // Draw border
+        gc.setStroke(Color.LIGHTGRAY);
+        gc.strokeRect(0, 0, width, height);
     }
 
 }

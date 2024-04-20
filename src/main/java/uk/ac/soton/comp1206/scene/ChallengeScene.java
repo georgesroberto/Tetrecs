@@ -11,6 +11,8 @@ import uk.ac.soton.comp1206.ui.GamePane;
 import uk.ac.soton.comp1206.ui.GameWindow;
 import uk.ac.soton.comp1206.Multimedia;
 
+import uk.ac.soton.comp1206.component.PieceBoard; // Import the PieceBoard class
+
 /**
  * The Single Player challenge scene. Holds the UI for the single player challenge mode in the game.
  */
@@ -78,6 +80,9 @@ public class ChallengeScene extends BaseScene {
         multiplierLabel.textProperty().bind(game.multiplierProperty().asString());
         livesLabel.textProperty().bind(game.livesProperty().asString());
     
+        // Create and add PieceBoard
+        var pieceBoard = new PieceBoard(gameWindow.getWidth()/4, gameWindow.getHeight()/4); // Adjust the size as needed
+        mainPane.setLeft(pieceBoard);
     
         // Play background music
         multimedia.playMusic(); 

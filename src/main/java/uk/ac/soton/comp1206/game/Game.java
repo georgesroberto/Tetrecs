@@ -21,6 +21,8 @@ public class Game {
     private GamePiece currentPiece;
     private int totalScore;
 
+    private NextPieceListener nextPieceListener;
+
     /**
      * Bindable properties for score, level, lives, and multiplier
      */
@@ -257,7 +259,7 @@ public class Game {
         this.lives.set(lives);
     }
 
-     public int getMultiplier() {
+    public int getMultiplier() {
         return multiplier.get();
     }
 
@@ -267,5 +269,32 @@ public class Game {
 
     public void setMultiplier(int multiplier) {
         this.multiplier.set(multiplier);
+    }
+
+    /**
+     * Set the next piece listener for this game.
+     * @param listener the next piece listener to be set
+     */
+    public void setNextPieceListener(NextPieceListener listener) {
+        this.nextPieceListener = listener;
+    }
+
+    /**
+     * Generate the next piece and notify the next piece listener.
+     */
+    private void generateNextPiece() {
+        Random random = new Random();
+        GamePiece nextPiece = GamePiece.createPiece(random.nextInt(GamePiece.PIECES));
+        notifyNextPieceListener(nextPiece); // Notify the next piece listener
+    }
+
+    /**
+     * Notify the next piece listener with the generated next piece.
+     * @param piece the next piece to be notified
+     */
+    private void notifyNextPieceListener(GamePiece piece) {
+        if (nextPieceListener != null) {
+            nextPieceListener.nextPiece(piece);
+        }
     }
 }

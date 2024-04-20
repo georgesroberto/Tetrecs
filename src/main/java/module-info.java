@@ -1,6 +1,7 @@
 module uk.ac.soton.comp1206 {
     requires java.scripting;
     requires javafx.controls;
+    requires javafx.graphics;
     requires javafx.fxml;
     requires javafx.media;
     requires org.apache.logging.log4j;

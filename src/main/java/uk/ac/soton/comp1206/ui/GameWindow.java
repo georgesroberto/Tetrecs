@@ -77,7 +77,7 @@ public class GameWindow {
      * Display the main menu
      */
     public void startMenu() {
-        loadScene(new MenuScene(this));
+        loadScene(new MenuScene(stage, this));
     }
 
     /**
