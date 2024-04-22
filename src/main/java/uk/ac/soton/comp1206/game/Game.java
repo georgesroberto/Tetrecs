@@ -5,12 +5,18 @@ import javafx.beans.property.SimpleIntegerProperty;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.ac.soton.comp1206.component.GameBlock;
-import java.util.Random;
+import uk.ac.soton.comp1206.component.GameBlockCoordinate;
+import uk.ac.soton.comp1206.event.LineClearedListener;
+import uk.ac.soton.comp1206.event.NextPieceListener;
 
-/**
- * The Game class handles the main logic, state and properties of the TetrECS game.
- * Methods to manipulate the game state and to handle actions made by the player should take place inside this class.
- */
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.*;
+
+
 public class Game {
 
     private static final Logger logger = LogManager.getLogger(Game.class);
@@ -22,28 +28,23 @@ public class Game {
     private int totalScore;
 
     private NextPieceListener nextPieceListener;
+    private Set<LineClearedListener> lineClearedListeners = new HashSet<>();
+    private ScheduledExecutorService gameLoopExecutor;
 
-    /**
-     * Bindable properties for score, level, lives, and multiplier
-     */
     private final IntegerProperty score;
     private final IntegerProperty level;
     private final IntegerProperty lives;
     private final IntegerProperty multiplier;
-
-    /**
-     * Create a new game with the specified rows and columns. Creates a corresponding grid model.
-     *
-     * @param cols number of columns
-     * @param rows number of rows
-     */
-    public Game(int cols, int rows) {
+    
+    public Game(int cols, int rows) { 
         this.cols = cols;
         this.rows = rows;
-
+        
         // Create a new grid model to represent the game state
         this.grid = new Grid(cols, rows);
-
+        
+        gameLoopExecutor = Executors.newSingleThreadScheduledExecutor();
+        
         // Initialize properties with default values
         this.score = new SimpleIntegerProperty(0);
         this.level = new SimpleIntegerProperty(1);
@@ -54,69 +55,55 @@ public class Game {
         this.totalScore = 0;
     }
 
-    /**
-     * Start the game
-     */
     public void start() {
         logger.info("Starting game");
         initialiseGame();
+        startGameLoop();
     }
 
-    /**
-     * Initialise a new game and set up anything that needs to be done at the start
-     */
     public void initialiseGame() {
         logger.info("Initialising game");
         spawnPiece();
     }
 
-    /**
-     * Spawn a new piece and set it as the current piece
-     */
     public void spawnPiece() {
-        Random random = new Random();
-        currentPiece = GamePiece.createPiece(random.nextInt(GamePiece.PIECES));
-
-        // Place the piece in the middle of the top row (for a 5x5 grid)
-        int startX = (getCols() - currentPiece.getBlocks().length) / 2;
-        int startY = 0;
-
-        if (grid.canPlayPiece(startX, startY, currentPiece)) {
-            grid.playPiece(startX, startY, currentPiece);
-        } else {
-            // Handle game over condition if the piece cannot be placed
-            // For example, you can end the game or reset the board
-            // Here, we'll just print a message to the console
-            System.out.println("Game Over - Unable to place initial piece");
-        }
+        currentPiece = generateAndPlacePiece();
     }
 
-    /**
-     * Replace the current piece with a new piece
-     */
     public void nextPiece() {
+        currentPiece = generateAndPlacePiece();
+    }
+
+    private GamePiece generateAndPlacePiece() {
         Random random = new Random();
-        currentPiece = GamePiece.createPiece(random.nextInt(GamePiece.PIECES));
+        GamePiece newPiece = GamePiece.createPiece(random.nextInt(GamePiece.PIECES));
 
         // Place the new piece in the middle of the top row (for a 5x5 grid)
-        int startX = (getCols() - currentPiece.getBlocks().length) / 2;
+        int startX = (getCols() - newPiece.getBlocks().length) / 2;
         int startY = 0;
 
-        if (grid.canPlayPiece(startX, startY, currentPiece)) {
-            grid.playPiece(startX, startY, currentPiece);
+        if (grid.canPlayPiece(startX, startY, newPiece)) {
+            grid.playPiece(startX, startY, newPiece);
         } else {
             // Handle game over condition if the piece cannot be placed
-            // For example, you can end the game or reset the board
-            // Here, we'll just print a message to the console
-            System.out.println("Game Over - Unable to place next piece");
+            endGame();
+            resetBoard();
+            System.out.println("Game Over - Unable to place piece");
         }
+
+        return newPiece;
     }
 
-    /**
-     * Handle what should happen when a particular block is clicked
-     *
-     * @param gameBlock the block that was clicked
-     */
+    private void resetBoard() {
+        // Perform actions to reset the board
+        logger.info("Resetting board...");
+        grid.clear();
+        score.set(0); // Reset score
+        level.set(1); // Reset level
+        lives.set(3); // Reset lives
+        multiplier.set(1); // Reset multiplier
+    }
+
     public void blockClicked(GameBlock gameBlock) {
         // Get the position of this block
         int x = gameBlock.getX();
@@ -129,99 +116,70 @@ public class Game {
         }
     }
 
-    /**
-     * Perform any actions that should be done after a piece is played
-     */
     public void afterPiece() {
-        // Calculate the score based on the number of lines cleared and blocks cleared
         score(linesCleared(), blocksCleared());
 
-        // Check if the current piece cleared any lines
         if (linesCleared() > 0) {
-            // Increase the multiplier
+
             multiplier.set(multiplier.get() + 1);
         } else {
-            // Reset the multiplier if the piece didn't clear any lines
             multiplier.set(1);
         }
 
-        // Update the level based on the total score
         level.set(totalScore / 1000 + 1);
     }
 
-    /**
-     * Get the total score
-     *
-     * @return total score
-     */
     public int getTotalScore() {
         return totalScore;
     }
 
-    /**
-     * Calculate the score based on the number of lines cleared and blocks cleared
-     *
-     * @param linesCleared  number of lines cleared
-     * @param blocksCleared number of blocks cleared
-     */
     public void score(int linesCleared, int blocksCleared) {
-        // Calculate the score based on the provided formula
         int score = linesCleared * blocksCleared * 10 * multiplier.get();
-        // Update the total score
         totalScore += score;
-        // Update the score property
         this.score.set(totalScore);
     }
 
-
-    /**
-     * Get the number of lines cleared by the current piece
-     *
-     * @return number of lines cleared
-     */
     public int linesCleared() {
-        // Implement logic to determine the number of lines cleared by the current piece
-        return 0; // Placeholder
+        int clearedLines = 0;
+        for (int y = 0; y < getRows(); y++) {
+            boolean lineCleared = true;
+            for (int x = 0; x < getCols(); x++) {
+                if (!grid.isBlockFilled(x, y)) {
+                    lineCleared = false;
+                    break;
+                }
+            }
+            if (lineCleared) {
+                clearedLines++;
+            }
+        }
+        return clearedLines;
     }
 
-    /**
-     * Get the number of blocks cleared by the current piece
-     *
-     * @return number of blocks cleared
-     */
     public int blocksCleared() {
-        // Implement logic to determine the number of blocks cleared by the current piece
-        return 0; // Placeholder
+        int clearedBlocks = 0;
+        for (int y = 0; y < getRows(); y++) {
+            for (int x = 0; x < getCols(); x++) {
+                if (grid.isBlockFilled(x, y)) {
+                    clearedBlocks++;
+                }
+            }
+        }
+        return clearedBlocks;
     }
 
-    /**
-     * Get the grid
-     *
-     * @return the grid
-     */
+
     public Grid getGrid() {
         return grid;
     }
 
-    /**
-     * Get the number of columns
-     *
-     * @return number of columns
-     */
     public int getCols() {
         return cols;
     }
 
-    /**
-     * Get the number of rows
-     *
-     * @return number of rows
-     */
     public int getRows() {
         return rows;
     }
-
-    // Accessor methods for properties
 
     public int getScore() {
         return score.get();
@@ -233,6 +191,10 @@ public class Game {
 
     public void setScore(int score) {
         this.score.set(score);
+    }
+
+    public int getCurrentLevel() {
+        return level.get();
     }
 
     public int getLevel() {
@@ -271,30 +233,88 @@ public class Game {
         this.multiplier.set(multiplier);
     }
 
-    /**
-     * Set the next piece listener for this game.
-     * @param listener the next piece listener to be set
-     */
     public void setNextPieceListener(NextPieceListener listener) {
         this.nextPieceListener = listener;
     }
 
-    /**
-     * Generate the next piece and notify the next piece listener.
-     */
     private void generateNextPiece() {
         Random random = new Random();
         GamePiece nextPiece = GamePiece.createPiece(random.nextInt(GamePiece.PIECES));
         notifyNextPieceListener(nextPiece); // Notify the next piece listener
     }
 
-    /**
-     * Notify the next piece listener with the generated next piece.
-     * @param piece the next piece to be notified
-     */
     private void notifyNextPieceListener(GamePiece piece) {
         if (nextPieceListener != null) {
             nextPieceListener.nextPiece(piece);
         }
     }
+
+    public void addLineClearedListener(LineClearedListener listener) {
+        lineClearedListeners.add(listener);
+    }
+
+    private void notifyLineClearedListeners(Set<GameBlockCoordinate> clearedBlocks) {
+        for (LineClearedListener listener : lineClearedListeners) {
+            listener.onLineCleared(clearedBlocks);
+        }
+    }
+
+    public int getTimerDelay() {
+        // Calculate the delay at the maximum of either 2500 milliseconds or 12000 - 500 * the current level
+        return Math.max(2500, 12000 - (500 * getCurrentLevel()));
+    }
+
+    public void startGameLoop() {
+        int delay = getTimerDelay();
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                gameLoop(); // Call the game loop method
+            }
+        }, 0, delay);
+    }
+
+    // Implement the game loop method
+    private void gameLoop() {
+        loseLife();
+        discardCurrentPiece();
+        startGameLoop();
+
+        if (getLives() < 0) {
+            endGame(); 
+        }
+    }
+
+    private void loseLife() {
+        setLives(getLives() - 1);
+        if (getLives() <= 0) {
+            endGame();
+        }
+    }
+
+    private void discardCurrentPiece() {
+        setCurrentPiece(null);
+    }
+
+    private void endGame() {
+        stopGameLoop();
+        logger.info("Game over!");
+    }
+
+    public void setCurrentPiece(GamePiece piece) {
+        this.currentPiece = piece;
+    }
+    
+    private void stopGameLoop() {
+        if (gameLoopExecutor != null && !gameLoopExecutor.isShutdown()) {
+            gameLoopExecutor.shutdown();
+            try {
+                gameLoopExecutor.awaitTermination(1, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
 }
