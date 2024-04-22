@@ -6,8 +6,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.ac.soton.comp1206.component.GameBlock;
 import uk.ac.soton.comp1206.component.GameBlockCoordinates;
+import uk.ac.soton.comp1206.component.GameLoopListener;
 import uk.ac.soton.comp1206.event.LineClearedListener;
 import uk.ac.soton.comp1206.event.NextPieceListener;
+import uk.ac.soton.comp1206.scene.ChallengeScene;
 
 import java.util.HashSet;
 import java.util.Random;
@@ -17,7 +19,7 @@ import java.util.TimerTask;
 import java.util.concurrent.*;
 
 
-public class Game {
+public class Game  implements GameLoopListener {
 
     private static final Logger logger = LogManager.getLogger(Game.class);
 
@@ -30,6 +32,8 @@ public class Game {
     private NextPieceListener nextPieceListener;
     private Set<LineClearedListener> lineClearedListeners = new HashSet<>();
     private ScheduledExecutorService gameLoopExecutor;
+    private GameLoopListener gameLoopListener;
+  
 
     private final IntegerProperty score;
     private final IntegerProperty level;
@@ -273,6 +277,11 @@ public class Game {
             @Override
             public void run() {
                 gameLoop(); // Call the game loop method
+                
+                // Notify the listener that the game loop has started
+                if (gameLoopListener != null) {
+                    gameLoopListener.onGameLoopStart();
+                }
             }
         }, 0, delay);
     }
@@ -281,7 +290,6 @@ public class Game {
     private void gameLoop() {
         loseLife();
         discardCurrentPiece();
-        startGameLoop();
 
         if (getLives() < 0) {
             endGame(); 
@@ -318,5 +326,49 @@ public class Game {
             }
         }
     }
+
+    public void setGameLoopListener(GameLoopListener listener) {
+        this.gameLoopListener = listener;
+    }
+
+    public void setOnGameLoop(ChallengeScene challengeScene) {
+    this.gameLoopListener = challengeScene;
+}
+
+
+   @Override
+    public void onGameLoopStart() {
+        resetTimers();
+        initializeGameObjects();
+        updateUI();
+    }
+
+    private void resetTimers() {
+        // Reset any timers used in the game
+        // For Tetris, you may not have any timers to reset, but if you implement any timers later in the game, you can reset them here
+    }
+
+    private void initializeGameObjects() {
+        grid.clear();
+
+        spawnPiece();
+    }
+
+    private void updateUI() {
+        // Update the UI elements based on the current game state
+
+        // // Update the score label
+        // scoreLabel.setText("Score: " + score.get());
+
+        // // Update the level label
+        // levelLabel.setText("Level: " + level.get());
+
+        // // Update the multiplier label
+        // multiplierLabel.setText("Multiplier: " + multiplier.get());
+
+        // // Update the lives label
+        // livesLabel.setText("Lives: " + lives.get());
+    }
+
 
 }

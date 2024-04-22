@@ -1,27 +1,37 @@
 package uk.ac.soton.comp1206.scene;
 
 import javafx.scene.control.Label;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.ac.soton.comp1206.component.GameBlock;
+import uk.ac.soton.comp1206.component.GameBlockCoordinates;
 import uk.ac.soton.comp1206.component.GameBoard;
+import uk.ac.soton.comp1206.component.GameLoopListener;
+import uk.ac.soton.comp1206.component.PieceBoard;
+import uk.ac.soton.comp1206.event.LineClearedListener;
 import uk.ac.soton.comp1206.game.Game;
 import uk.ac.soton.comp1206.ui.GamePane;
 import uk.ac.soton.comp1206.ui.GameWindow;
 import uk.ac.soton.comp1206.Multimedia;
 
-import uk.ac.soton.comp1206.component.PieceBoard; // Import the PieceBoard class
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The Single Player challenge scene. Holds the UI for the single player challenge mode in the game.
  */
-public class ChallengeScene extends BaseScene {
+public class ChallengeScene extends BaseScene implements LineClearedListener, GameLoopListener {
 
     private static final Logger logger = LogManager.getLogger(MenuScene.class);
     protected Game game;
 
     private final Multimedia multimedia = new Multimedia();
+
+    private GameBoard gameBoard;
+    private PieceBoard pieceBoard;
 
     // UI elements
     private Label scoreLabel;
@@ -47,7 +57,7 @@ public class ChallengeScene extends BaseScene {
 
         setupGame();
 
-        root = new GamePane(gameWindow.getWidth(),gameWindow.getHeight());
+        root = new GamePane(gameWindow.getWidth(), gameWindow.getHeight());
 
         var challengePane = new StackPane();
         challengePane.setMaxWidth(gameWindow.getWidth());
@@ -58,11 +68,12 @@ public class ChallengeScene extends BaseScene {
         var mainPane = new BorderPane();
         challengePane.getChildren().add(mainPane);
 
-        var board = new GameBoard(game.getGrid(),gameWindow.getWidth()/2,gameWindow.getWidth()/2);
-        mainPane.setCenter(board);
+        // Create and add the GameBoard
+        gameBoard = new GameBoard(game.getGrid(), gameWindow.getWidth() / 2, gameWindow.getWidth() / 2);
+        mainPane.setCenter(gameBoard);
 
-        //Handle block on gameboard grid being clicked
-        board.setOnBlockClick(this::blockClicked);
+        // Handle block on gameboard grid being clicked
+        gameBoard.setOnBlockClick(this::blockClicked);
 
         // Create UI elements for displaying score, level, multiplier, and lives
         scoreLabel = new Label("Score: ");
@@ -79,13 +90,19 @@ public class ChallengeScene extends BaseScene {
         levelLabel.textProperty().bind(game.levelProperty().asString());
         multiplierLabel.textProperty().bind(game.multiplierProperty().asString());
         livesLabel.textProperty().bind(game.livesProperty().asString());
-    
+
         // Create and add PieceBoard
-        var pieceBoard = new PieceBoard(gameWindow.getWidth()/4, gameWindow.getHeight()/4); // Adjust the size as needed
+        pieceBoard = new PieceBoard(gameWindow.getWidth() / 4, gameWindow.getHeight() / 4);
         mainPane.setLeft(pieceBoard);
-    
+
         // Play background music
-        multimedia.playMusic(); 
+        multimedia.playMusic();
+
+        // Register this scene as a LineClearedListener
+        game.addLineClearedListener(this);
+
+        // Register this scene as a GameLoopListener
+        game.setOnGameLoop(this);
     }
 
     /**
@@ -101,8 +118,6 @@ public class ChallengeScene extends BaseScene {
      */
     public void setupGame() {
         logger.info("Starting a new challenge");
-
-        // Start new game
         game = new Game(5, 5);
     }
 
@@ -114,5 +129,35 @@ public class ChallengeScene extends BaseScene {
         logger.info("Initialising Challenge");
         game.start();
     }
+
+     @Override
+    public void onLineCleared(Set<GameBlockCoordinates> clearedBlocks) {
+        // Trigger fade-out effect for cleared blocks in the GameBoard
+        Set<GameBlock> blocks = new HashSet<>();
+        for (GameBlockCoordinates block : clearedBlocks) {
+            blocks.add(gameBoard.getBlock(block.getX(), block.getY()));
+        }
+        gameBoard.fadeOutBlocks(blocks);
+    }
+
+    @Override
+    public void onGameLoopStart() {
+        resetTimers();
+        initializeGameObjects();
+        updateUI();
+    }
+
+    private void updateUI() {
+        // Implement the logic to update the UI here
+    }
+
+    private void initializeGameObjects() {
+        // Implement the logic to initialize game objects here
+    }
+
+    private void resetTimers() {
+        // Implement the logic to reset timers here
+    }
+
 
 }

@@ -154,6 +154,14 @@ public class GameWindow {
     }
 
     /**
+ * Display the scores scene
+ */
+    public void startScores() {
+        loadScene(new ScoresScene(this));
+    }
+
+
+    /**
      * Get the communicator
      * @return communicator
      */

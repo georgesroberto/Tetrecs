@@ -31,7 +31,7 @@ public class MenuScene extends BaseScene {
      * @param stage the stage to display the menu in
      * @param gameWindow the Game Window this will be displayed in
      */
-    public MenuScene(Stage stage, GameWindow gameWindow) {
+    public MenuScene(@SuppressWarnings("exports") Stage stage, GameWindow gameWindow) {
         super(gameWindow);
         this.stage = stage;
         logger.info("Creating Menu Scene");

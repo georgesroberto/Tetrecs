@@ -1,30 +1,25 @@
 package uk.ac.soton.comp1206.component;
 
+import javafx.animation.FadeTransition;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.*;
+import javafx.util.Duration;
+
+import java.util.Set;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-/**
- * The Visual User Interface component representing a single block in the grid.
- *
- * Extends Canvas and is responsible for drawing itself.
- *
- * Displays an empty square (when the value is 0) or a coloured square depending on value.
- *
- * The GameBlock value should be bound to a corresponding block in the Grid model.
- */
+
 public class GameBlock extends Canvas {
 
+    @SuppressWarnings("unused")
     private static final Logger logger = LogManager.getLogger(GameBlock.class);
-
-    /**
-     * The set of colours for different pieces
-     */
+    @SuppressWarnings("exports")
     public static final Color[] COLOURS = {
             Color.TRANSPARENT,
             Color.DEEPPINK,
@@ -45,33 +40,12 @@ public class GameBlock extends Canvas {
     };
 
     private final GameBoard gameBoard;
-
     private final double width;
     private final double height;
-
-    /**
-     * The column this block exists as in the grid
-     */
     private final int x;
-
-    /**
-     * The row this block exists as in the grid
-     */
     private final int y;
-
-    /**
-     * The value of this block (0 = empty, otherwise specifies the colour to render as)
-     */
     private final IntegerProperty value = new SimpleIntegerProperty(0);
 
-    /**
-     * Create a new single Game Block
-     * @param gameBoard the board this block belongs to
-     * @param x the column the block exists in
-     * @param y the row the block exists in
-     * @param width the width of the canvas to render
-     * @param height the height of the canvas to render
-     */
     public GameBlock(GameBoard gameBoard, int x, int y, double width, double height) {
         this.gameBoard = gameBoard;
         this.width = width;
@@ -79,156 +53,105 @@ public class GameBlock extends Canvas {
         this.x = x;
         this.y = y;
 
-        //A canvas needs a fixed width and height
         setWidth(width);
         setHeight(height);
 
-        //Do an initial paint
         paint();
 
-        //When the value property is updated, call the internal updateValue method
         value.addListener(this::updateValue);
     }
 
-    /**
-     * When the value of this block is updated,
-     * @param observable what was updated
-     * @param oldValue the old value
-     * @param newValue the new value
-     */
+
     private void updateValue(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
         paint();
     }
 
-    /**
-     * Handle painting of the block canvas
-     */
+
     public void paint() {
-        //If the block is empty, paint as empty
-        if(value.get() == 0) {
+        if (value.get() == 0) {
             paintEmpty();
         } else {
-            //If the block is not empty, paint with the colour represented by the value
-            paintColor(COLOURS[value.get()]);
+            paintFilled(COLOURS[value.get()]);
+            if (isMiddleSquare()) {
+                drawCircle();
+            }
         }
     }
 
-    /**
-     * Paint this canvas empty
-     */
-    // private void paintEmpty() {
-    //     var gc = getGraphicsContext2D();
-
-    //     //Clear
-    //     gc.clearRect(0,0,width,height);
-
-    //     //Fill
-    //     gc.setFill(Color.WHITE);
-    //     gc.fillRect(0,0, width, height);
-
-    //     //Border
-    //     gc.setStroke(Color.BLACK);
-    //     gc.strokeRect(0,0,width,height);
-    // }
-
-    /**
-     * Paint this canvas with the given colour
-     * @param colour the colour to paint
-     */
-    private void paintColor(Paint colour) {
-        var gc = getGraphicsContext2D();
-
-        //Clear
-        gc.clearRect(0,0,width,height);
-
-        //Colour fill
-        gc.setFill(colour);
-        gc.fillRect(0,0, width, height);
-
-        //Border
-        gc.setStroke(Color.BLACK);
-        gc.strokeRect(0,0,width,height);
+    private boolean isMiddleSquare() {
+        return getX() == (gameBoard.getCols() - 1) / 2 && getY() == (gameBoard.getRows() - 1) / 2;
     }
 
-    /**
-     * Get the column of this block
-     * @return column number
-     */
+    private void drawCircle() {
+        GraphicsContext gc = getGraphicsContext2D();
+        double blockSize = getWidth();
+        double centerX = blockSize / 2;
+        double centerY = blockSize / 2;
+        double radius = blockSize / 4; // Adjust circle radius as needed
+        gc.setFill(Color.RED); // Set circle color
+        gc.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
+    }
+
     public int getX() {
         return x;
     }
 
-    /**
-     * Get the row of this block
-     * @return row number
-     */
     public int getY() {
         return y;
     }
 
-    /**
-     * Get the current value held by this block, representing it's colour
-     * @return value
-     */
     public int getValue() {
         return this.value.get();
     }
 
-    /**
-     * Bind the value of this block to another property. Used to link the visual block to a corresponding block in the Grid.
-     * @param input property to bind the value to
-     */
     public void bind(ObservableValue<? extends Number> input) {
         value.bind(input);
     }
 
-
-    /**
-     * Set whether the block is filled or not
-     * @param filled true if the block should be filled, false otherwise
-     */
     public void setFilled(boolean filled) {
-        // Set the value of the block based on whether it should be filled or not
         value.set(filled ? 1 : 0);
     }
 
-
-    /**
-     * Paint this canvas empty
-     */
     private void paintEmpty() {
         GraphicsContext gc = getGraphicsContext2D();
-
-        // Clear canvas
         gc.clearRect(0, 0, width, height);
-
-        // Draw border
+    
         gc.setStroke(Color.LIGHTGRAY);
         gc.strokeRect(0, 0, width, height);
     }
 
-    /**
-     * Paint this canvas with the given colour gradient for filled tiles
-     * @param colour the colour to paint
-     */
     private void paintFilled(Color colour) {
         GraphicsContext gc = getGraphicsContext2D();
 
-        // Clear canvas
         gc.clearRect(0, 0, width, height);
 
-        // Create gradient for filled tiles
         LinearGradient gradient = new LinearGradient(0, 0, 0, height, false, CycleMethod.NO_CYCLE,
                 new Stop(0.0, colour.deriveColor(1, 1, 1, 0.5)),
                 new Stop(1.0, colour.deriveColor(1, 1, 1, 0.8)));
 
-        // Fill rectangle with gradient
         gc.setFill(gradient);
         gc.fillRect(0, 0, width, height);
 
-        // Draw border
         gc.setStroke(Color.LIGHTGRAY);
         gc.strokeRect(0, 0, width, height);
     }
 
+    // Additional methods for event handling and animations can be added here
+
+    public void fadeOutBlocks(Set<GameBlock> blocks) {
+        for (GameBlock block : blocks) {
+            block.fadeOut();
+        }
+    }
+
+    public void fadeOut() {
+        // Implement the logic to fade out the GameBlock
+        // For example, you might change the opacity of the block over time
+        // You can use JavaFX animations or transitions to achieve the fade-out effect
+        // For instance, if GameBlock extends javafx.scene.shape.Rectangle
+        FadeTransition fadeTransition = new FadeTransition(Duration.seconds(1), this);
+        fadeTransition.setFromValue(1.0);
+        fadeTransition.setToValue(0.0);
+        fadeTransition.play();
+    }
 }
