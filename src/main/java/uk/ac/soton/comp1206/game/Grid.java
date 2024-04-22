@@ -2,27 +2,35 @@ package uk.ac.soton.comp1206.game;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import uk.ac.soton.comp1206.component.GameBlockCoordinates;
+import uk.ac.soton.comp1206.event.LineClearedListener;
 
+import java.util.HashSet;
+import java.util.Set;
 
 public class Grid {
+
     private final int cols;
     private final int rows;
     private final SimpleIntegerProperty[][] grid;
-   
+    private Set<LineClearedListener> lineClearedListeners = new HashSet<>();
+
+
     public Grid(int cols, int rows) {
         this.cols = cols;
         this.rows = rows;
-
-        //Create the grid itself
         grid = new SimpleIntegerProperty[cols][rows];
+        initializeGrid();
+    }
 
-        //Add a SimpleIntegerProperty to every block in the grid
-        for(var y = 0; y < rows; y++) {
-            for(var x = 0; x < cols; x++) {
+    private void initializeGrid() {
+        for (int y = 0; y < rows; y++) {
+            for (int x = 0; x < cols; x++) {
                 grid[x][y] = new SimpleIntegerProperty(0);
             }
         }
     }
+
     public IntegerProperty getGridProperty(int x, int y) {
         return grid[x][y];
     }
@@ -32,15 +40,11 @@ public class Grid {
     }
 
     public int get(int x, int y) {
-        try {
-            //Get the value held in the property at the x and y index provided
-            return grid[x][y].get();
-        } catch (ArrayIndexOutOfBoundsException e) {
-            //No such index
-            return -1;
+        if (x < 0 || y < 0 || x >= cols || y >= rows) {
+            return -1; // Out of bounds
         }
+        return grid[x][y].get();
     }
-
 
     public int getCols() {
         return cols;
@@ -51,31 +55,22 @@ public class Grid {
     }
 
     public boolean canPlayPiece(int x, int y, GamePiece piece) {
-        // Get the shape of the piece
         int[][] shape = piece.getBlocks();
-
-        // Check if the piece can fit within the grid boundaries
         if (x < 0 || y < 0 || x + shape.length > cols || y + shape[0].length > rows) {
-            return false;
+            return false; // Piece out of bounds
         }
-
-        // Check if any cells that the piece would occupy are already occupied
         for (int i = 0; i < shape.length; i++) {
             for (int j = 0; j < shape[0].length; j++) {
                 if (shape[i][j] != 0 && grid[x + i][y + j].get() != 0) {
-                    return false;
+                    return false; // Block already occupied
                 }
             }
         }
-
         return true;
     }
 
     public void playPiece(int x, int y, GamePiece piece) {
-        // Get the shape of the piece
         int[][] shape = piece.getBlocks();
-
-        // Place the piece onto the grid
         for (int i = 0; i < shape.length; i++) {
             for (int j = 0; j < shape[0].length; j++) {
                 if (shape[i][j] != 0) {
@@ -85,14 +80,45 @@ public class Grid {
         }
     }
 
+    // Placeholder method: Clears the grid
     public void clear() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'clear'");
+        for (int y = 0; y < rows; y++) {
+            for (int x = 0; x < cols; x++) {
+                grid[x][y].set(0);
+            }
+        }
     }
 
+    // Placeholder method: Checks if a block at given coordinates is filled
     public boolean isBlockFilled(int x, int y) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'isBlockFilled'");
+        if (x < 0 || y < 0 || x >= cols || y >= rows) {
+            return false; // Out of bounds, not filled
+        }
+        return grid[x][y].get() != 0;
+    }
+
+
+
+    // Method to add a listener
+    public void addLineClearedListener(LineClearedListener listener) {
+        lineClearedListeners.add(listener);
+    }
+
+    // Method to remove a listener (if needed)
+    public void removeLineClearedListener(LineClearedListener listener) {
+        lineClearedListeners.remove(listener);
+    }
+
+    // Method to notify listeners when a line is cleared
+    private void notifyLineClearedListeners(Set<GameBlockCoordinates> clearedBlocks) {
+        for (LineClearedListener listener : lineClearedListeners) {
+            listener.onLineCleared(clearedBlocks);
+        }
+    }
+
+    public void clearLines() {
+        Set<GameBlockCoordinates> clearedBlocks = new HashSet<>();
+        notifyLineClearedListeners(clearedBlocks);
     }
 
 }

@@ -7,7 +7,7 @@ public class TimerBar extends ProgressBar {
     public TimerBar() {
         setPrefWidth(200); // Set preferred width
         setProgress(1); // Set initial progress to full
-        setStyle("-fx-accent: green;"); // Set initial color
+        updateStyle(1); // Set initial color
     }
 
     // Implement a method to update the timer bar based on remaining time
@@ -16,12 +16,17 @@ public class TimerBar extends ProgressBar {
         // Calculate progress based on remaining time
         double progress = (double) remainingTime / (double) maxTime;
         setProgress(progress);
-        // Change color based on progress
+        updateStyle(progress); // Update color based on progress
+    }
+
+    // Update style based on progress level
+    private void updateStyle(double progress) {
         if (progress < 0.5) {
-            setStyle("-fx-accent: orange;"); // Change to orange if time is running out
-        }
-        if (progress < 0.2) {
-            setStyle("-fx-accent: red;"); // Change to red if time is almost up
+            setStyle("-fx-accent: orange;");
+        } else if (progress < 0.2) {
+            setStyle("-fx-accent: red;");
+        } else {
+            setStyle("-fx-accent: green;");
         }
     }
 }

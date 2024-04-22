@@ -5,7 +5,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.ac.soton.comp1206.component.GameBlock;
-import uk.ac.soton.comp1206.component.GameBlockCoordinate;
+import uk.ac.soton.comp1206.component.GameBlockCoordinates;
 import uk.ac.soton.comp1206.event.LineClearedListener;
 import uk.ac.soton.comp1206.event.NextPieceListener;
 
@@ -237,6 +237,7 @@ public class Game {
         this.nextPieceListener = listener;
     }
 
+    @SuppressWarnings("unused")
     private void generateNextPiece() {
         Random random = new Random();
         GamePiece nextPiece = GamePiece.createPiece(random.nextInt(GamePiece.PIECES));
@@ -253,7 +254,8 @@ public class Game {
         lineClearedListeners.add(listener);
     }
 
-    private void notifyLineClearedListeners(Set<GameBlockCoordinate> clearedBlocks) {
+    @SuppressWarnings("unused")
+    private void notifyLineClearedListeners(Set<GameBlockCoordinates> clearedBlocks) {
         for (LineClearedListener listener : lineClearedListeners) {
             listener.onLineCleared(clearedBlocks);
         }
