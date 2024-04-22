@@ -1,12 +1,9 @@
-// ScoresScene.java
-
 package uk.ac.soton.comp1206.scene;
 
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -24,13 +21,13 @@ public class ScoresScene extends BaseScene {
 
     private final SimpleListProperty<Pair<String, Integer>> localScores = new SimpleListProperty<>(FXCollections.observableArrayList());
     private final File scoresFile = new File("scores.txt");    
+    private Pane root;
 
     @SuppressWarnings("exports")
     public ScoresScene(GameWindow gameWindow, Pane root) {
         super(gameWindow);
         setRoot(root);
     }
-
 
     @Override
     public void build() {
@@ -54,12 +51,13 @@ public class ScoresScene extends BaseScene {
         getRoot().getChildren().add(titleBox);
     }
 
-        // Getter and setter methods for root pane
+    // Getter and setter methods for root pane
+    @SuppressWarnings("exports")
     public Pane getRoot() {
         return root;
     }
 
-    public void setRoot(Pane root) {
+    public void setRoot(@SuppressWarnings("exports") Pane root) {
         this.root = root;
     }
 
@@ -111,6 +109,7 @@ public class ScoresScene extends BaseScene {
         // If score is not higher than any existing score, add it to the end
         localScores.add(newScore);
     }
+    
     public void saveScores() {
         writeScores();
     }

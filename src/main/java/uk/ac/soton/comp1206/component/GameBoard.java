@@ -9,6 +9,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.ac.soton.comp1206.event.BlockClickedListener;
+import uk.ac.soton.comp1206.game.GamePiece;
 import uk.ac.soton.comp1206.game.Grid;
 
 public class GameBoard extends GridPane {
@@ -103,4 +104,33 @@ public class GameBoard extends GridPane {
             block.fadeOut();
         }
     }
+
+    // Added setPiece method
+    public void setPiece(GamePiece piece, int offsetX, int offsetY) {
+    // Get the width and height of the piece
+    int pieceWidth = piece.getWidth();
+    int pieceHeight = piece.getHeight();
+
+    // Iterate over the cells occupied by the piece
+    for (int x = 0; x < pieceWidth; x++) {
+        for (int y = 0; y < pieceHeight; y++) {
+            // Calculate the position on the game board for this cell
+            int boardX = offsetX + x;
+            int boardY = offsetY + y;
+
+            // Check if the cell is within the bounds of the game board
+            if (boardX >= 0 && boardX < cols && boardY >= 0 && boardY < rows) {
+                // Get the block at this position on the game board
+                GameBlock block = blocks[boardX][boardY];
+
+                // Set the color of the block based on the color of the piece
+                block.setColor(piece.getColor());
+
+                // Update the state of the block
+                block.setOccupied(true);
+            }
+        }
+    }
+}
+
 }

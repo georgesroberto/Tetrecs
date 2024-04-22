@@ -39,7 +39,7 @@ public class GameWindow {
      * @param width width
      * @param height height
      */
-    public GameWindow(Stage stage, int width, int height) {
+    public GameWindow(@SuppressWarnings("exports") Stage stage, int width, int height) {
         this.width = width;
         this.height = height;
 
@@ -133,6 +133,7 @@ public class GameWindow {
      * Get the current scene being displayed
      * @return scene
      */
+    @SuppressWarnings("exports")
     public Scene getScene() {
         return scene;
     }
@@ -157,10 +158,9 @@ public class GameWindow {
  * Display the scores scene
  */
     public void startScores() {
-        loadScene(new ScoresScene(this));
+        Pane rootPane = new Pane(); // Create a new root pane
+        loadScene(new ScoresScene(this, rootPane)); // Pass the root pane to the ScoresScene constructor
     }
-
-
     /**
      * Get the communicator
      * @return communicator

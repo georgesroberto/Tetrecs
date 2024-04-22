@@ -162,4 +162,19 @@ public class GamePiece {
     public String toString() {
         return this.name;
     }
+
+    public int getWidth() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getWidth'");
+    }
+
+    public int getHeight() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getHeight'");
+    }
+
+    public Object getColor() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getColor'");
+    }
 }

@@ -154,4 +154,16 @@ public class GameBlock extends Canvas {
         fadeTransition.setToValue(0.0);
         fadeTransition.play();
     }
+
+
+    public void setOccupied(boolean b) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setOccupied'");
+    }
+
+
+    public void setColor(Object color) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setColor'");
+    }
 }

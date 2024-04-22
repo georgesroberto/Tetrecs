@@ -7,11 +7,11 @@ import uk.ac.soton.comp1206.game.GamePiece;
 public class PieceBoard extends GameBoard {
 
     public PieceBoard(double width, double height) {
-        super(3, 3, width, height);
+        super(3, 3, width, height); // Assuming PieceBoard is always 3x3
     }
 
     @Override
-    public void draw(GraphicsContext gc) {
+    public void draw(@SuppressWarnings("exports") GraphicsContext gc) {
         super.draw(gc);
 
         // Draw a circle on the middle square
