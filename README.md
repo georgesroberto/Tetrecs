@@ -10,6 +10,8 @@ JAVAFX
 
 ## Credits
 - University of Southampton for providing the server credentials.
+- JAVAFX Docs
+- 
 
 ### Developers
 - Georges
